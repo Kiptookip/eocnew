@@ -59,7 +59,7 @@ export default function TopBar({ onToggleSidebar }: TopBarProps) {
           </div>
           <h1 className="font-semibold text-brand-teal text-sm">
             <span className="hidden md:inline">Emergency Operations Centre</span>
-            <span className="md:hidden">EOC</span>
+            <span className="md:hidden">NMS EOC</span>
           </h1>
         </div>
         <div className="flex items-center gap-3 sm:gap-6">

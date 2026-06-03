@@ -30,7 +30,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { label: 'Fleet Management', path: '/fleet', icon: MapTrifold, roles: ['SUPER_ADMIN', 'ADMIN', 'DISPATCHER'] },
     { label: 'Call Logs', path: '/call-logs', icon: Phone, roles: ['SUPER_ADMIN', 'ADMIN', 'DISPATCHER'] },
     { label: 'Personnel', path: '/admin/users', icon: Users, roles: ['SUPER_ADMIN', 'ADMIN'] },
-    { label: 'Analytics', path: '/admin/analytics', icon: ChartLineUp, roles: ['SUPER_ADMIN', 'ADMIN', 'DISPATCHER', 'WATCHER', 'PARTNER'] },
+    { label: 'Analytics', path: '/admin/analytics', icon: ChartLineUp, roles: ['SUPER_ADMIN', 'ADMIN'] },
     { label: 'System Settings', path: '/admin/settings', icon: Gear, roles: ['SUPER_ADMIN', 'ADMIN'] },
     { label: 'My Alerts', path: '/watcher', icon: ClipboardText, roles: ['WATCHER'] },
     { label: 'New Incident', path: '/watcher/new-incident', icon: WarningCircle, roles: ['WATCHER'] },
