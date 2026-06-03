@@ -2,9 +2,17 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import {
-  CheckCircle, MapPin, PaperPlaneRight, ClipboardText,
-  MagnifyingGlass, X, CaretRight, CaretLeft, Phone,
-  User, WarningCircle, FirstAid, ListChecks,
+  CheckCircle,
+  MapPin,
+  PaperPlaneRight,
+  ClipboardText,
+  MagnifyingGlass,
+  X,
+  CaretRight,
+  CaretLeft,
+  Phone,
+  WarningCircle,
+  ListChecks,
 } from '@phosphor-icons/react';
 import api from '../../api/client';
 import Map from '../../components/shared/Map';
@@ -13,43 +21,68 @@ import { useNotificationStore } from '../../stores/notificationStore';
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const SUB_COUNTIES = [
-  'Dagoretti North','Dagoretti South','Embakasi Central','Embakasi East',
-  'Embakasi North','Embakasi South','Embakasi West','Kamukunji','Kasarani',
-  'Kibra',"Lang'ata",'Makadara','Mathare','Roysambu','Ruaraka','Starehe','Westlands',
+  'Dagoretti North',
+  'Dagoretti South',
+  'Embakasi Central',
+  'Embakasi East',
+  'Embakasi North',
+  'Embakasi South',
+  'Embakasi West',
+  'Kamukunji',
+  'Kasarani',
+  'Kibra',
+  "Lang'ata",
+  'Makadara',
+  'Mathare',
+  'Roysambu',
+  'Ruaraka',
+  'Starehe',
+  'Westlands',
 ];
 
 const ALERT_MODES = ['Phone', 'Radio', 'Walk-in', 'Other'];
 
 const ORIGIN_OPTIONS = [
-  'Community', 'Hospital', 'Police', 'Fire Department', 'Other EMS', 'Self-referral', 'Other',
+  'Community',
+  'Hospital',
+  'Police',
+  'Fire Department',
+  'Other EMS',
+  'Self-referral',
+  'Other',
 ];
 
 const NATURE_OPTIONS = [
-  'Trauma', 'Medical', 'Obstetric', 'Pediatric', 'Psychiatric', 'Burns', 'Poisoning', 'Other',
+  'Trauma',
+  'Medical',
+  'Obstetric',
+  'Pediatric',
+  'Psychiatric',
+  'Burns',
+  'Poisoning',
+  'Other',
 ];
 
 const NATURE_DETAIL: Record<string, string[]> = {
-  Trauma:     ['Road Traffic Accident', 'Fall', 'Assault/Violence', 'Industrial Accident', 'Sports Injury', 'Other'],
-  Medical:    ['Cardiac Arrest', 'Stroke', 'Seizure', 'Respiratory Distress', 'Diabetic Emergency', 'Other'],
-  Obstetric:  ['Labour', 'Post-partum Haemorrhage', 'Eclampsia', 'Miscarriage', 'Other'],
-  Pediatric:  ['Febrile Convulsion', 'Neonatal Emergency', 'Respiratory Distress', 'Trauma', 'Other'],
-  Psychiatric:['Attempted Suicide', 'Acute Psychosis', 'Aggression', 'Other'],
-  Burns:      ['Chemical', 'Electrical', 'Thermal', 'Other'],
-  Poisoning:  ['Drug Overdose', 'Chemical Ingestion', 'Snake Bite', 'Other'],
-  Other:      ['Other'],
+  Trauma: ['Road Traffic Accident', 'Fall', 'Assault/Violence', 'Industrial Accident', 'Sports Injury', 'Other'],
+  Medical: ['Cardiac Arrest', 'Stroke', 'Seizure', 'Respiratory Distress', 'Diabetic Emergency', 'Other'],
+  Obstetric: ['Labour', 'Post-partum Haemorrhage', 'Eclampsia', 'Miscarriage', 'Other'],
+  Pediatric: ['Febrile Convulsion', 'Neonatal Emergency', 'Respiratory Distress', 'Trauma', 'Other'],
+  Psychiatric: ['Attempted Suicide', 'Acute Psychosis', 'Aggression', 'Other'],
+  Burns: ['Chemical', 'Electrical', 'Thermal', 'Other'],
+  Poisoning: ['Drug Overdose', 'Chemical Ingestion', 'Snake Bite', 'Other'],
+  Other: ['Other'],
 };
 
 // ── Steps config ─────────────────────────────────────────────────────────────
 
 const STEPS = [
-  { id: 1, label: 'Alert',    icon: Phone },
-  { id: 2, label: 'Location', icon: MapPin },
-  { id: 3, label: 'Patient',  icon: User },
-  { id: 4, label: 'Incident', icon: FirstAid },
-  { id: 5, label: 'Review',   icon: ListChecks },
+  { id: 1, label: 'Alert & Patient', icon: Phone },
+  { id: 2, label: 'Incident & Location', icon: MapPin },
+  { id: 3, label: 'Summary', icon: ListChecks },
 ];
 
-// ── Shared style tokens ───────────────────────────────────────────────────────
+// ── Shared style tokens ─────────────────────────────────────────────────────
 
 const inputCls = 'w-full h-11 px-4 border-2 border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-brand-teal focus:border-brand-teal outline-none text-slate-700 placeholder:text-slate-300 bg-white transition-all';
 const selectCls = inputCls;
@@ -70,7 +103,7 @@ const Hint = ({ children }: { children: React.ReactNode }) => (
   <p className="text-xs text-slate-400 mt-1">{children}</p>
 );
 
-// ── Form state ────────────────────────────────────────────────────────────────
+// ── Form state ──────────────────────────────────────────────────────────────
 
 type FormState = {
   alertAt: string;
@@ -122,31 +155,34 @@ const defaultForm: FormState = {
   placeOfReferral: '',
 };
 
-// ── Review row ────────────────────────────────────────────────────────────────
+// ── Review row ──────────────────────────────────────────────────────────────
 
 function ReviewRow({ label, value }: { label: string; value?: string | boolean }) {
   if (!value && value !== false) return null;
+
   return (
     <div className="flex gap-4 py-2.5 border-b border-slate-100 last:border-0">
-      <span className="text-xs font-bold text-slate-400 uppercase tracking-wide w-36 shrink-0 pt-0.5">{label}</span>
+      <span className="text-xs font-bold text-slate-400 uppercase tracking-wide w-36 shrink-0 pt-0.5">
+        {label}
+      </span>
       <span className="text-sm text-slate-700 font-medium">{String(value)}</span>
     </div>
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+// ── Main Component ──────────────────────────────────────────────────────────
 
 export default function NewIncidentWizard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addNotification } = useNotificationStore();
 
-  const submitted    = (location.state as any)?.submitted;
+  const submitted = (location.state as any)?.submitted;
   const submittedCase = (location.state as any)?.caseNumber;
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>(defaultForm);
-  const [showMap, setShowMap]       = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
@@ -154,19 +190,25 @@ export default function NewIncidentWizard() {
 
   const canNext: Record<number, boolean> = {
     1: !!form.alertMode,
-    2: !!form.locationName.trim() && !!form.subCounty,
-    3: true,
-    4: !!form.chiefComplaint.trim(),
+    2: !!form.chiefComplaint.trim() && !!form.locationName.trim() && !!form.subCounty,
   };
 
   const searchLocation = async () => {
     if (!searchQuery.trim()) return;
+
     setIsSearching(true);
     try {
-      const res  = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery + ', Nairobi, Kenya')}&limit=1`);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery + ', Nairobi, Kenya')}&limit=1`,
+      );
       const data = await res.json();
+
       if (data?.length > 0) {
-        set({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), locationName: searchQuery });
+        set({
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+          locationName: searchQuery,
+        });
       }
     } finally {
       setIsSearching(false);
@@ -175,9 +217,11 @@ export default function NewIncidentWizard() {
 
   const handleMapClick = async (lat: number, lng: number) => {
     set({ lat, lng });
+
     try {
-      const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
       const data = await res.json();
+
       if (data?.display_name) {
         const name = data.display_name.split(',').slice(0, 2).join(',').trim();
         set({ locationName: name });
@@ -189,29 +233,29 @@ export default function NewIncidentWizard() {
   const mutation = useMutation({
     mutationFn: () =>
       api.post('/incidents', {
-        alertMode:            form.alertMode,
-        alertAt:              form.alertAt,
-        originOfAlert:        form.originOfAlert || undefined,
-        notifierDetails:      form.notifierName ? [{ name: form.notifierName, phone: form.notifierPhone }] : undefined,
-        locationName:         form.locationName,
-        subCounty:            form.subCounty,
-        lat:                  form.lat,
-        lng:                  form.lng,
-        patientName:          form.patientName  || undefined,
-        patientAge:           form.patientAge   || undefined,
-        patientGender:        form.patientGender || undefined,
-        nextOfKin:            form.nextOfKin    || undefined,
-        nextOfKinPhone:       form.nextOfKinPhone || undefined,
-        massCasualty:         form.massCasualty,
-        massCasualtyCount:    form.massCasualtyCount ? parseInt(form.massCasualtyCount, 10) : undefined,
-        chiefComplaint:       form.chiefComplaint,
-        alertNature:          form.alertNature  || undefined,
-        alertNatureDetail:    form.alertNatureDetail || undefined,
-        watcherComments:      form.watcherComments || undefined,
+        alertMode: form.alertMode,
+        alertAt: form.alertAt,
+        originOfAlert: form.originOfAlert || undefined,
+        notifierDetails: form.notifierName ? [{ name: form.notifierName, phone: form.notifierPhone }] : undefined,
+        locationName: form.locationName,
+        subCounty: form.subCounty,
+        lat: form.lat,
+        lng: form.lng,
+        patientName: form.patientName || undefined,
+        patientAge: form.patientAge || undefined,
+        patientGender: form.patientGender || undefined,
+        nextOfKin: form.nextOfKin || undefined,
+        nextOfKinPhone: form.nextOfKinPhone || undefined,
+        massCasualty: form.massCasualty,
+        massCasualtyCount: form.massCasualtyCount ? parseInt(form.massCasualtyCount, 10) : undefined,
+        chiefComplaint: form.chiefComplaint,
+        alertNature: form.alertNature || undefined,
+        alertNatureDetail: form.alertNatureDetail || undefined,
+        watcherComments: form.watcherComments || undefined,
         preHospitalManagement: form.preHospitalManagement || undefined,
-        placeOfReferral:      form.placeOfReferral || undefined,
+        placeOfReferral: form.placeOfReferral || undefined,
       }),
-    onSuccess: (res) => {
+    onSuccess: res => {
       const caseNumber = res?.data?.data?.caseNumber ?? '';
       navigate('/watcher/new-incident', { state: { submitted: true, caseNumber } });
     },
@@ -224,7 +268,7 @@ export default function NewIncidentWizard() {
     },
   });
 
-  // ── Success screen ──────────────────────────────────────────────────────────
+  // ── Success screen ────────────────────────────────────────────────────────
 
   if (submitted) {
     return (
@@ -232,6 +276,7 @@ export default function NewIncidentWizard() {
         <div className="w-20 h-20 rounded-full bg-brand-green/10 flex items-center justify-center">
           <CheckCircle size={48} weight="fill" className="text-brand-green" />
         </div>
+
         <div>
           <h2 className="text-2xl font-bold text-brand-teal">Alert Submitted</h2>
           {submittedCase && (
@@ -240,13 +285,19 @@ export default function NewIncidentWizard() {
             </p>
           )}
         </div>
+
         <div className="flex gap-3">
           <button
-            onClick={() => { setForm(defaultForm); setStep(1); navigate('/watcher/new-incident', { replace: true, state: {} }); }}
+            onClick={() => {
+              setForm(defaultForm);
+              setStep(1);
+              navigate('/watcher/new-incident', { replace: true, state: {} });
+            }}
             className="px-5 py-2.5 border-2 border-slate-200 text-brand-teal text-sm font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2"
           >
             <PaperPlaneRight size={16} /> New Alert
           </button>
+
           <button
             onClick={() => navigate('/watcher')}
             className="px-5 py-2.5 bg-brand-teal text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all"
@@ -258,18 +309,21 @@ export default function NewIncidentWizard() {
     );
   }
 
-  // ── Wizard shell ────────────────────────────────────────────────────────────
+  // ── Wizard shell ──────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-
       {/* Top bar */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4 sticky top-0 z-10">
         <div className="flex-1">
           <p className="text-xs text-slate-400 font-semibold uppercase tracking-widest mb-0.5">New Incident</p>
           <h1 className="text-lg font-bold text-brand-teal">{STEPS[step - 1].label}</h1>
         </div>
-        <button onClick={() => navigate(-1)} className="p-2 text-slate-400 hover:text-status-danger hover:bg-red-50 rounded-lg transition-all">
+
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 text-slate-400 hover:text-status-danger hover:bg-red-50 rounded-lg transition-all"
+        >
           <X size={20} weight="bold" />
         </button>
       </div>
@@ -278,27 +332,36 @@ export default function NewIncidentWizard() {
       <div className="bg-white border-b border-slate-100 px-6 py-4">
         <div className="flex items-center gap-0 max-w-2xl mx-auto">
           {STEPS.map((s, idx) => {
-            const done    = step > s.id;
+            const done = step > s.id;
             const current = step === s.id;
+
             return (
               <div key={s.id} className="flex items-center flex-1 last:flex-none">
                 <button
                   onClick={() => done && setStep(s.id)}
                   className={`flex flex-col items-center gap-1 group ${done ? 'cursor-pointer' : 'cursor-default'}`}
                 >
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all font-bold text-sm ${
-                    done    ? 'bg-brand-green text-white'      :
-                    current ? 'bg-brand-teal text-white ring-4 ring-brand-teal/20' :
-                              'bg-slate-100 text-slate-400'
-                  }`}>
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all font-bold text-sm ${
+                      done
+                        ? 'bg-brand-green text-white'
+                        : current
+                          ? 'bg-brand-teal text-white ring-4 ring-brand-teal/20'
+                          : 'bg-slate-100 text-slate-400'
+                    }`}
+                  >
                     {done ? <CheckCircle size={18} weight="fill" /> : <s.icon size={16} weight={current ? 'fill' : 'regular'} />}
                   </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wide hidden sm:block ${
-                    current ? 'text-brand-teal' : done ? 'text-brand-green' : 'text-slate-400'
-                  }`}>
+
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wide hidden sm:block ${
+                      current ? 'text-brand-teal' : done ? 'text-brand-green' : 'text-slate-400'
+                    }`}
+                  >
                     {s.label}
                   </span>
                 </button>
+
                 {idx < STEPS.length - 1 && (
                   <div className={`flex-1 h-0.5 mx-2 rounded-full ${step > s.id ? 'bg-brand-green' : 'bg-slate-200'}`} />
                 )}
@@ -311,31 +374,41 @@ export default function NewIncidentWizard() {
       {/* Step content */}
       <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto w-full">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-
           {/* Step header */}
           <div className="bg-brand-teal px-6 py-4 flex items-center gap-3">
-            {(() => { const S = STEPS[step - 1]; return <S.icon size={20} weight="fill" className="text-white/80" />; })()}
+            {(() => {
+              const S = STEPS[step - 1];
+              return <S.icon size={20} weight="fill" className="text-white/80" />;
+            })()}
             <div>
-              <p className="text-xs font-bold text-brand-green uppercase tracking-widest">Step {step} of {STEPS.length}</p>
+              <p className="text-xs font-bold text-brand-green uppercase tracking-widest">
+                Step {step} of {STEPS.length}
+              </p>
               <h2 className="text-lg font-bold text-white">{STEPS[step - 1].label}</h2>
             </div>
           </div>
 
           <div className="p-6 space-y-5">
-
-            {/* ── Step 1: Alert Details ───────────────────────────────────────── */}
+            {/* ── Step 1: Alert + Patient ────────────────────────────────────── */}
             {step === 1 && (
               <>
                 <Field>
                   <Label required>Alert Date &amp; Time</Label>
-                  <input type="datetime-local" className={inputCls} value={form.alertAt} onChange={e => set({ alertAt: e.target.value })} />
+                  <input
+                    type="datetime-local"
+                    className={inputCls}
+                    value={form.alertAt}
+                    onChange={e => set({ alertAt: e.target.value })}
+                  />
                   <Hint>When was the alert received?</Hint>
                 </Field>
 
                 <Field>
                   <Label required>Mode of Alert</Label>
                   <select className={selectCls} value={form.alertMode} onChange={e => set({ alertMode: e.target.value })}>
-                    {ALERT_MODES.map(m => <option key={m}>{m}</option>)}
+                    {ALERT_MODES.map(m => (
+                      <option key={m}>{m}</option>
+                    ))}
                   </select>
                 </Field>
 
@@ -343,24 +416,136 @@ export default function NewIncidentWizard() {
                   <Label>Origin of Alert</Label>
                   <select className={selectCls} value={form.originOfAlert} onChange={e => set({ originOfAlert: e.target.value })}>
                     <option value="">Select origin...</option>
-                    {ORIGIN_OPTIONS.map(o => <option key={o}>{o}</option>)}
+                    {ORIGIN_OPTIONS.map(o => (
+                      <option key={o}>{o}</option>
+                    ))}
                   </select>
                 </Field>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field>
                     <Label>Notifier Name</Label>
-                    <input type="text" placeholder="Full name" className={inputCls} value={form.notifierName} onChange={e => set({ notifierName: e.target.value })} />
+                    <input
+                      type="text"
+                      placeholder="Full name"
+                      className={inputCls}
+                      value={form.notifierName}
+                      onChange={e => set({ notifierName: e.target.value })}
+                    />
                   </Field>
+
                   <Field>
                     <Label>Notifier Phone</Label>
-                    <input type="tel" placeholder="07XXXXXXXX" className={inputCls} value={form.notifierPhone} onChange={e => set({ notifierPhone: e.target.value })} />
+                    <input
+                      type="tel"
+                      placeholder="07XXXXXXXX"
+                      className={inputCls}
+                      value={form.notifierPhone}
+                      onChange={e => set({ notifierPhone: e.target.value })}
+                    />
                   </Field>
+                </div>
+
+                <div className="border-t border-slate-200 pt-5">
+                  <p className="text-xs font-black text-brand-teal uppercase tracking-widest mb-4">Patient Details</p>
+
+                  <Field>
+                    <Label>Patient Name</Label>
+                    <input
+                      type="text"
+                      placeholder="Full name"
+                      className={inputCls}
+                      value={form.patientName}
+                      onChange={e => set({ patientName: e.target.value })}
+                    />
+                  </Field>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+                    <Field>
+                      <Label>Age</Label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 34"
+                        className={inputCls}
+                        value={form.patientAge}
+                        onChange={e => set({ patientAge: e.target.value })}
+                      />
+                    </Field>
+
+                    <Field>
+                      <Label>Sex</Label>
+                      <select className={selectCls} value={form.patientGender} onChange={e => set({ patientGender: e.target.value })}>
+                        <option value="">Select...</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                        <option>Other</option>
+                      </select>
+                    </Field>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+                    <Field>
+                      <Label>Next of Kin</Label>
+                      <input
+                        type="text"
+                        placeholder="Full name"
+                        className={inputCls}
+                        value={form.nextOfKin}
+                        onChange={e => set({ nextOfKin: e.target.value })}
+                      />
+                    </Field>
+
+                    <Field>
+                      <Label>Next of Kin Phone</Label>
+                      <input
+                        type="tel"
+                        placeholder="07XXXXXXXX"
+                        className={inputCls}
+                        value={form.nextOfKinPhone}
+                        onChange={e => set({ nextOfKinPhone: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+
+                  <label
+                    className={`mt-5 flex items-start gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                      form.massCasualty
+                        ? 'border-status-danger bg-status-danger/5'
+                        : 'border-slate-200 hover:border-status-danger/50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 mt-0.5 accent-red-500 shrink-0"
+                      checked={form.massCasualty}
+                      onChange={e => set({ massCasualty: e.target.checked })}
+                    />
+                    <div>
+                      <p className="font-bold text-status-danger text-sm flex items-center gap-1.5">
+                        <WarningCircle size={16} weight="fill" /> Declare Mass Casualty Incident (MCI)
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">Multiple victims requiring heavy response.</p>
+                    </div>
+                  </label>
+
+                  {form.massCasualty && (
+                    <Field className="mt-5">
+                      <Label>Approximate Number of Casualties</Label>
+                      <input
+                        type="number"
+                        min="2"
+                        placeholder="e.g. 5"
+                        className={inputCls}
+                        value={form.massCasualtyCount}
+                        onChange={e => set({ massCasualtyCount: e.target.value })}
+                      />
+                    </Field>
+                  )}
                 </div>
               </>
             )}
 
-            {/* ── Step 2: Location ─────────────────────────────────────────────── */}
+            {/* ── Step 2: Incident + Location ────────────────────────────────── */}
             {step === 2 && (
               <>
                 <Field>
@@ -408,6 +593,7 @@ export default function NewIncidentWizard() {
                         {isSearching ? '...' : <MagnifyingGlass size={15} />}
                       </button>
                     </div>
+
                     <Map
                       center={[form.lat, form.lng]}
                       zoom={14}
@@ -416,6 +602,7 @@ export default function NewIncidentWizard() {
                       layerType="street"
                       className="h-56 w-full"
                     />
+
                     {form.locationName && (
                       <div className="px-4 py-2.5 bg-brand-green/5 border-t border-brand-green/20 text-xs text-brand-green font-bold flex items-center gap-1.5">
                         <MapPin size={12} weight="fill" /> {form.locationName} · {form.lat.toFixed(4)}, {form.lng.toFixed(4)}
@@ -428,147 +615,143 @@ export default function NewIncidentWizard() {
                   <Label required>Sub-County</Label>
                   <select className={selectCls} value={form.subCounty} onChange={e => set({ subCounty: e.target.value })}>
                     <option value="">Select sub-county...</option>
-                    {SUB_COUNTIES.map(s => <option key={s}>{s}</option>)}
+                    {SUB_COUNTIES.map(s => (
+                      <option key={s}>{s}</option>
+                    ))}
                   </select>
                 </Field>
+
+                <div className="border-t border-slate-200 pt-5">
+                  <p className="text-xs font-black text-brand-teal uppercase tracking-widest mb-4">Incident Details</p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field>
+                      <Label>Nature of Alert</Label>
+                      <select
+                        className={selectCls}
+                        value={form.alertNature}
+                        onChange={e => set({ alertNature: e.target.value, alertNatureDetail: '' })}
+                      >
+                        <option value="">Select...</option>
+                        {NATURE_OPTIONS.map(n => (
+                          <option key={n}>{n}</option>
+                        ))}
+                      </select>
+                    </Field>
+
+                    <Field>
+                      <Label>Specify Nature</Label>
+                      <select
+                        className={selectCls}
+                        value={form.alertNatureDetail}
+                        onChange={e => set({ alertNatureDetail: e.target.value })}
+                        disabled={!form.alertNature}
+                      >
+                        <option value="">Select...</option>
+                        {(NATURE_DETAIL[form.alertNature] ?? []).map(d => (
+                          <option key={d}>{d}</option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+
+                  <Field className="mt-5">
+                    <Label required>Chief Complaint</Label>
+                    <textarea
+                      rows={3}
+                      placeholder="Describe the primary complaint / reason for call..."
+                      className={textareaCls}
+                      value={form.chiefComplaint}
+                      onChange={e => set({ chiefComplaint: e.target.value })}
+                      required
+                    />
+                    <Hint>Be as specific as possible — this is what dispatchers see first.</Hint>
+                  </Field>
+
+                  <Field className="mt-5">
+                    <Label>Caller / Watcher Notes</Label>
+                    <textarea
+                      rows={3}
+                      placeholder="Any additional observations from the caller..."
+                      className={textareaCls}
+                      value={form.watcherComments}
+                      onChange={e => set({ watcherComments: e.target.value })}
+                    />
+                  </Field>
+
+                  <Field className="mt-5">
+                    <Label>Pre-Hospital Management Given</Label>
+                    <textarea
+                      rows={3}
+                      placeholder="e.g. Tourniquet applied, IV access obtained..."
+                      className={textareaCls}
+                      value={form.preHospitalManagement}
+                      onChange={e => set({ preHospitalManagement: e.target.value })}
+                    />
+                  </Field>
+
+                  <Field className="mt-5">
+                    <Label>Place of Referral</Label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Kenyatta National Hospital"
+                      className={inputCls}
+                      value={form.placeOfReferral}
+                      onChange={e => set({ placeOfReferral: e.target.value })}
+                    />
+                  </Field>
+                </div>
               </>
             )}
 
-            {/* ── Step 3: Patient ──────────────────────────────────────────────── */}
+            {/* ── Step 3: Summary ────────────────────────────────────────────── */}
             {step === 3 && (
               <>
-                <Field>
-                  <Label>Patient Name</Label>
-                  <input type="text" placeholder="Full name" className={inputCls} value={form.patientName} onChange={e => set({ patientName: e.target.value })} />
-                </Field>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <Label>Age</Label>
-                    <input type="text" placeholder="e.g. 34" className={inputCls} value={form.patientAge} onChange={e => set({ patientAge: e.target.value })} />
-                  </Field>
-                  <Field>
-                    <Label>Sex</Label>
-                    <select className={selectCls} value={form.patientGender} onChange={e => set({ patientGender: e.target.value })}>
-                      <option value="">Select...</option>
-                      <option>Male</option>
-                      <option>Female</option>
-                      <option>Other</option>
-                    </select>
-                  </Field>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <Label>Next of Kin</Label>
-                    <input type="text" placeholder="Full name" className={inputCls} value={form.nextOfKin} onChange={e => set({ nextOfKin: e.target.value })} />
-                  </Field>
-                  <Field>
-                    <Label>Next of Kin Phone</Label>
-                    <input type="tel" placeholder="07XXXXXXXX" className={inputCls} value={form.nextOfKinPhone} onChange={e => set({ nextOfKinPhone: e.target.value })} />
-                  </Field>
-                </div>
-
-                <label className={`flex items-start gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                  form.massCasualty ? 'border-status-danger bg-status-danger/5' : 'border-slate-200 hover:border-status-danger/50'
-                }`}>
-                  <input type="checkbox" className="w-5 h-5 mt-0.5 accent-red-500 shrink-0" checked={form.massCasualty} onChange={e => set({ massCasualty: e.target.checked })} />
-                  <div>
-                    <p className="font-bold text-status-danger text-sm flex items-center gap-1.5">
-                      <WarningCircle size={16} weight="fill" /> Declare Mass Casualty Incident (MCI)
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">Multiple victims requiring heavy response.</p>
-                  </div>
-                </label>
-
-                {form.massCasualty && (
-                  <Field>
-                    <Label>Approximate Number of Casualties</Label>
-                    <input type="number" min="2" placeholder="e.g. 5" className={inputCls} value={form.massCasualtyCount} onChange={e => set({ massCasualtyCount: e.target.value })} />
-                  </Field>
-                )}
-              </>
-            )}
-
-            {/* ── Step 4: Incident Details ─────────────────────────────────────── */}
-            {step === 4 && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <Label>Nature of Alert</Label>
-                    <select className={selectCls} value={form.alertNature} onChange={e => set({ alertNature: e.target.value, alertNatureDetail: '' })}>
-                      <option value="">Select...</option>
-                      {NATURE_OPTIONS.map(n => <option key={n}>{n}</option>)}
-                    </select>
-                  </Field>
-                  <Field>
-                    <Label>Specify Nature</Label>
-                    <select className={selectCls} value={form.alertNatureDetail} onChange={e => set({ alertNatureDetail: e.target.value })} disabled={!form.alertNature}>
-                      <option value="">Select...</option>
-                      {(NATURE_DETAIL[form.alertNature] ?? []).map(d => <option key={d}>{d}</option>)}
-                    </select>
-                  </Field>
-                </div>
-
-                <Field>
-                  <Label required>Chief Complaint</Label>
-                  <textarea rows={3} placeholder="Describe the primary complaint / reason for call..." className={textareaCls} value={form.chiefComplaint} onChange={e => set({ chiefComplaint: e.target.value })} required />
-                  <Hint>Be as specific as possible — this is what dispatchers see first.</Hint>
-                </Field>
-
-                <Field>
-                  <Label>Caller / Watcher Notes</Label>
-                  <textarea rows={3} placeholder="Any additional observations from the caller..." className={textareaCls} value={form.watcherComments} onChange={e => set({ watcherComments: e.target.value })} />
-                </Field>
-
-                <Field>
-                  <Label>Pre-Hospital Management Given</Label>
-                  <textarea rows={3} placeholder="e.g. Tourniquet applied, IV access obtained..." className={textareaCls} value={form.preHospitalManagement} onChange={e => set({ preHospitalManagement: e.target.value })} />
-                </Field>
-
-                <Field>
-                  <Label>Place of Referral</Label>
-                  <input type="text" placeholder="e.g. Kenyatta National Hospital" className={inputCls} value={form.placeOfReferral} onChange={e => set({ placeOfReferral: e.target.value })} />
-                </Field>
-              </>
-            )}
-
-            {/* ── Step 5: Review ──────────────────────────────────────────────── */}
-            {step === 5 && (
-              <>
-                <p className="text-sm text-slate-500">Review all details before submitting. Click any completed step above to go back and edit.</p>
+                <p className="text-sm text-slate-500">Review all details before submitting.</p>
 
                 {[
-                  { heading: 'Alert Details', rows: [
-                    { label: 'Alert Time',   value: form.alertAt },
-                    { label: 'Mode',         value: form.alertMode },
-                    { label: 'Origin',       value: form.originOfAlert },
-                    { label: 'Notifier',     value: form.notifierName ? `${form.notifierName} · ${form.notifierPhone}` : undefined },
-                  ]},
-                  { heading: 'Location', rows: [
-                    { label: 'Location',     value: form.locationName },
-                    { label: 'Sub-County',   value: form.subCounty },
-                    { label: 'Coordinates',  value: form.lat ? `${form.lat.toFixed(4)}, ${form.lng.toFixed(4)}` : undefined },
-                  ]},
-                  { heading: 'Patient', rows: [
-                    { label: 'Name',         value: form.patientName },
-                    { label: 'Age / Sex',    value: [form.patientAge, form.patientGender].filter(Boolean).join(' · ') || undefined },
-                    { label: 'Next of Kin',  value: form.nextOfKin ? `${form.nextOfKin} · ${form.nextOfKinPhone}` : undefined },
-                    { label: 'MCI',          value: form.massCasualty ? `Yes (${form.massCasualtyCount || '?'} casualties)` : undefined },
-                  ]},
-                  { heading: 'Incident', rows: [
-                    { label: 'Nature',       value: [form.alertNature, form.alertNatureDetail].filter(Boolean).join(' → ') || undefined },
-                    { label: 'Complaint',    value: form.chiefComplaint },
-                    { label: 'Pre-hospital', value: form.preHospitalManagement },
-                    { label: 'Referral',     value: form.placeOfReferral },
-                  ]},
+                  {
+                    heading: 'Alert Details',
+                    rows: [
+                      { label: 'Alert Time', value: form.alertAt },
+                      { label: 'Mode', value: form.alertMode },
+                      { label: 'Origin', value: form.originOfAlert },
+                      { label: 'Notifier', value: form.notifierName ? `${form.notifierName} · ${form.notifierPhone}` : undefined },
+                    ],
+                  },
+                  {
+                    heading: 'Location',
+                    rows: [
+                      { label: 'Location', value: form.locationName },
+                      { label: 'Sub-County', value: form.subCounty },
+                      { label: 'Coordinates', value: form.lat ? `${form.lat.toFixed(4)}, ${form.lng.toFixed(4)}` : undefined },
+                    ],
+                  },
+                  {
+                    heading: 'Patient',
+                    rows: [
+                      { label: 'Name', value: form.patientName },
+                      { label: 'Age / Sex', value: [form.patientAge, form.patientGender].filter(Boolean).join(' · ') || undefined },
+                      { label: 'Next of Kin', value: form.nextOfKin ? `${form.nextOfKin} · ${form.nextOfKinPhone}` : undefined },
+                      { label: 'MCI', value: form.massCasualty ? `Yes (${form.massCasualtyCount || '?'} casualties)` : undefined },
+                    ],
+                  },
+                  {
+                    heading: 'Incident',
+                    rows: [
+                      { label: 'Nature', value: [form.alertNature, form.alertNatureDetail].filter(Boolean).join(' → ') || undefined },
+                      { label: 'Complaint', value: form.chiefComplaint },
+                      { label: 'Pre-hospital', value: form.preHospitalManagement },
+                      { label: 'Referral', value: form.placeOfReferral },
+                    ],
+                  },
                 ].map(section => (
                   <div key={section.heading} className="border-2 border-slate-100 rounded-xl overflow-hidden">
                     <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-100">
                       <p className="text-xs font-black text-brand-teal uppercase tracking-widest">{section.heading}</p>
                     </div>
                     <div className="px-4 py-1">
-                      {section.rows.map(row => row.value ? <ReviewRow key={row.label} label={row.label} value={row.value} /> : null)}
+                      {section.rows.map(row => (row.value ? <ReviewRow key={row.label} label={row.label} value={row.value} /> : null))}
                     </div>
                   </div>
                 ))}
@@ -588,7 +771,7 @@ export default function NewIncidentWizard() {
       <div className="bg-white border-t border-slate-200 px-6 py-4 flex items-center justify-between sticky bottom-0 gap-4">
         <button
           type="button"
-          onClick={() => step === 1 ? navigate(-1) : setStep(s => s - 1)}
+          onClick={() => (step === 1 ? navigate(-1) : setStep(s => Math.max(1, s - 1)))}
           className="flex items-center gap-2 px-5 py-2.5 border-2 border-slate-200 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-50 transition-all"
         >
           <CaretLeft size={16} weight="bold" />
@@ -597,14 +780,19 @@ export default function NewIncidentWizard() {
 
         <div className="flex items-center gap-1">
           {STEPS.map(s => (
-            <div key={s.id} className={`h-1.5 rounded-full transition-all duration-300 ${step === s.id ? 'w-6 bg-brand-teal' : step > s.id ? 'w-3 bg-brand-green' : 'w-3 bg-slate-200'}`} />
+            <div
+              key={s.id}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                step === s.id ? 'w-6 bg-brand-teal' : step > s.id ? 'w-3 bg-brand-green' : 'w-3 bg-slate-200'
+              }`}
+            />
           ))}
         </div>
 
-        {step < 5 ? (
+        {step < 3 ? (
           <button
             type="button"
-            onClick={() => setStep(s => s + 1)}
+            onClick={() => setStep(s => Math.min(3, s + 1))}
             disabled={!canNext[step]}
             className="flex items-center gap-2 px-6 py-2.5 bg-brand-teal text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
